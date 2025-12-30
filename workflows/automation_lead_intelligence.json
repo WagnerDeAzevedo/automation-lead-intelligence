@@ -1,0 +1,441 @@
+{
+  "name": "automation_lead_intelligence",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/lead-intelligence",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -832,
+        0
+      ],
+      "id": "5dde2e41-49de-4ed2-adce-8a6fc369de22",
+      "name": "Webhook",
+      "webhookId": "ca02928c-4c17-4e1a-a8fa-aff7a8049ebf"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b6b2d691-4286-4ef8-a807-6f8fe71ed88f",
+              "name": "=lead_nome",
+              "value": "={{$json.nome || $json.name || ''}}\n",
+              "type": "string"
+            },
+            {
+              "id": "46d4b509-71ac-4a51-856e-80ba672ded61",
+              "name": "=lead_email",
+              "value": "={{$json.email || $json.mail || ''}}\n",
+              "type": "string"
+            },
+            {
+              "id": "d1e15902-ca41-4eb7-be54-49512bd74ffa",
+              "name": "=lead_mensagem",
+              "value": "={{$json.mensagem || $json.message || ''}}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -592,
+        -176
+      ],
+      "id": "b1820fff-82ee-47b1-9c64-d921d5a20830",
+      "name": "set_padronizar_lead"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6a01a0a5-21d9-4988-9773-f57961572024",
+              "name": "nome",
+              "value": "João",
+              "type": "string"
+            },
+            {
+              "id": "1dcd43b1-b3e2-4a57-9c98-e40f1fe088c1",
+              "name": "email",
+              "value": "joao@email.com",
+              "type": "string"
+            },
+            {
+              "id": "306c84af-c30d-4719-bfc1-85abc37e292b",
+              "name": "mensagem",
+              "value": "Quero saber preços e contratar rápido",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -816,
+        -176
+      ],
+      "id": "b67645d1-4c23-4d0b-bf59-fd65cf2e2a84",
+      "name": "mock_entrada_lead"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"prioridade\": \"string\",\n  \"perfil\": \"string\",\n  \"resumo_lead\": \"string\",\n  \"proximo_passo\": \"string\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -128,
+        16
+      ],
+      "id": "93d03aa9-225e-4e29-bf7f-3dc0b430d0a3",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -384,
+        32
+      ],
+      "id": "5a456157-3be9-4a97-8231-09bee5c0ef19",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "41LjB2C8D2QDe7sR",
+          "name": "openai_chatbot_gj"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Você é um assistente responsável por qualificar leads comerciais.\n\nAnalise os dados abaixo e gere uma resposta EXCLUSIVAMENTE em JSON PURO,\nsem markdown, sem blocos de código e sem ```json,\napenas o objeto JSON.\n\nsem texto adicional, com os campos:\n\n- prioridade: alta | media | baixa\n- perfil: curioso | interessado | pronto_para_comprar\n- resumo_lead: resumo curto do interesse do lead\n- proximo_passo: ação recomendada\n\nDados do lead:\nNome: {{ $json.lead_nome }}\nEmail: {{ $json.lead_email }}\nMensagem: {{ $json.lead_mensagem }}\n\nConsidere urgência, clareza e intenção de compra.\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Você é um assistente virtual do salão infantil Gil Jubinha.\n\nSua tarefa é:\n1) Identificar a intenção da mensagem do usuário\n2) Responder de forma educada, curta e clara\n3) Nunca inventar preços, horários ou serviços\n4) Nunca assumir informações que não foram fornecidas\n\nIntenções possíveis:\n- saudacao\n- preco_servicos\n- agendamento\n- humano\n- fora_escopo\n\nRegras:\n- Se a mensagem for apenas cumprimento → intenção = saudacao\n- Se perguntar sobre valores, preços ou serviços → preco_servicos\n- Se pedir marcar horário ou falar de data → agendamento\n- Se pedir falar com alguém → humano\n- Qualquer outra coisa → fora_escopo\n\nResponda SEMPRE no formato JSON exatamente assim:\n\n{\n  \"intencao\": \"uma_das_intencoes\",\n  \"resposta\": \"texto amigável para o cliente\"\n}\n\nNunca responda fora desse formato.\nNunca adicione explicações.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -352,
+        -176
+      ],
+      "id": "3aef69cf-db1a-4a44-b4dd-d5ca33661f50",
+      "name": "ai_agent"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d5f8f0d2-31f7-40dc-b175-b5c94d192b6e",
+                    "leftValue": "={{$json.response.output.prioridade}}\n",
+                    "rightValue": "alta",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "07b125b1-d3fe-416f-b63f-2bea86852abc",
+                    "leftValue": "={{$json.response.output.prioridade}}\n",
+                    "rightValue": "media",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c4cde6a1-a6e2-42af-98f0-f729c752164b",
+                    "leftValue": "{{$json.response.output.prioridade}}",
+                    "rightValue": "baixa",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        -192
+      ],
+      "id": "0473f4b8-4d01-4033-8588-9048d2055be5",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f69e4a89-6c2f-4a29-a47b-bed02b1970a0",
+              "name": "acao_recomendada",
+              "value": "contato_imediato",
+              "type": "string"
+            },
+            {
+              "id": "f20af340-458e-4120-b310-87e43e3b10e0",
+              "name": "prioridade",
+              "value": "alta",
+              "type": "string"
+            },
+            {
+              "id": "fbdd6dc8-70aa-486b-8063-1cb9865fd754",
+              "name": "sla_minutos",
+              "value": 15,
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        -224
+      ],
+      "id": "2e8ad2f0-fafb-43fd-b9cc-b16a54c9e66a",
+      "name": "set_lead_quente"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f69e4a89-6c2f-4a29-a47b-bed02b1970a0",
+              "name": "acao_recomendada",
+              "value": "follow_up",
+              "type": "string"
+            },
+            {
+              "id": "f20af340-458e-4120-b310-87e43e3b10e0",
+              "name": "prioridade",
+              "value": "media",
+              "type": "string"
+            },
+            {
+              "id": "972c4c4a-ce9e-4369-b735-5f4d2732e11d",
+              "name": "sla_horas",
+              "value": 24,
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        304,
+        -48
+      ],
+      "id": "0ba4c4f8-ae14-414e-a606-bae9e9f831d0",
+      "name": "set_lead_medio"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f69e4a89-6c2f-4a29-a47b-bed02b1970a0",
+              "name": "acao_recomendada",
+              "value": "nutricao",
+              "type": "string"
+            },
+            {
+              "id": "f20af340-458e-4120-b310-87e43e3b10e0",
+              "name": "prioridade",
+              "value": "baixa",
+              "type": "string"
+            },
+            {
+              "id": "5b578384-3887-4cfd-8b50-d3f5f5ee9619",
+              "name": "sla_dias",
+              "value": 7,
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        128
+      ],
+      "id": "33eeae62-c12c-4d5f-b943-dd8a8bbab90f",
+      "name": "set_lead_frio"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "mock_entrada_lead": {
+      "main": [
+        [
+          {
+            "node": "set_padronizar_lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set_padronizar_lead": {
+      "main": [
+        [
+          {
+            "node": "ai_agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "ai_agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "ai_agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ai_agent": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "set_lead_quente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "set_lead_medio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "set_lead_frio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "62b726d8-2fa3-4f35-84a7-8b1cdae7dcff",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7591b26145e58f115d7c4d8f28dcfe84a37bedfde2b316afdecb5a7b342cd266"
+  },
+  "id": "27XwLUImH9gsF2to",
+  "tags": []
+}
