@@ -16,6 +16,11 @@ O foco é **processo, decisão e priorização**, não interação por chat.
 - Automatizar decisões sem inflar fluxos
 
 ---
+## 🧠 Lead Intelligence
+
+Este workflow qualifica leads automaticamente usando IA,
+classificando prioridade (alta / média / baixa) e sugerindo
+ação recomendada e SLA, sem acoplamento a canais específicos.
 
 ## 🧩 Visão de Produto
 
